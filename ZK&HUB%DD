@@ -1,1 +1,675 @@
+-- // ZKONTOP HUB X - ULTIMATE ARMORED EDITION // --
+if not game:IsLoaded() then game.Loaded:Wait() end
 
+local players = game:GetService("Players")
+local uis = game:GetService("UserInputService")
+local ts = game:GetService("TweenService")
+local run = game:GetService("RunService")
+local light = game:GetService("Lighting")
+local teleport = game:GetService("TeleportService")
+local coreGui = game:GetService("CoreGui")
+
+local plr = players.LocalPlayer or players.PlayerAdded:Wait()
+
+-- Sécurité Parent GUI (évite les détections et crashs)
+local ui_parent = coreGui:FindFirstChild("RobloxGui") or coreGui
+if ui_parent:FindFirstChild("ZK_RUNNING") then ui_parent["ZK_RUNNING"]:Destroy() end
+
+local sgui = Instance.new("ScreenGui")
+sgui.Name = "ZK_RUNNING"
+sgui.ResetOnSpawn = false
+sgui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+sgui.Parent = ui_parent
+
+-- // VARIABLES ESP GLOBAL // --
+local espOn = false
+local espTracers = false
+local espNames = false
+local activeTracers = {}
+
+-- Bouton d'ouverture/fermeture (Toggle)
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(0, 50, 0, 50)
+toggle.Position = UDim2.new(0, 25, 0.5, -25)
+toggle.BackgroundColor3 = Color3.fromRGB(10, 12, 22)
+toggle.Text = "ZK"
+toggle.Font = Enum.Font.GothamBold
+toggle.TextSize = 18
+toggle.TextColor3 = Color3.fromRGB(50, 110, 255)
+toggle.BorderSizePixel = 0
+toggle.ZIndex = 10
+toggle.Parent = sgui
+
+local uic_toggle = Instance.new("UICorner")
+uic_toggle.CornerRadius = UDim.new(1, 0)
+uic_toggle.Parent = toggle
+
+local t_stroke = Instance.new("UIStroke")
+t_stroke.Color = Color3.fromRGB(40, 90, 230)
+t_stroke.Thickness = 2
+t_stroke.Parent = toggle
+
+local btnDrag, btnStart, btnPos
+toggle.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        btnDrag = true; btnStart = i.Position; btnPos = toggle.Position
+        i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then btnDrag = false end end)
+    end
+end)
+uis.InputChanged:Connect(function(i)
+    if btnDrag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d = i.Position - btnStart
+        toggle.Position = UDim2.new(btnPos.X.Scale, btnPos.X.Offset + d.X, btnPos.Y.Scale, btnPos.Y.Offset + d.Y)
+    end
+end)
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 650, 0, 420)
+main.Position = UDim2.new(0.5, -325, 0.5, -210)
+main.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
+main.BorderSizePixel = 0
+main.Visible = true
+main.Parent = sgui
+
+local uic_main = Instance.new("UICorner")
+uic_main.CornerRadius = UDim.new(0, 8)
+uic_main.Parent = main
+
+local m_stroke = Instance.new("UIStroke")
+m_stroke.Color = Color3.fromRGB(24, 35, 65)
+m_stroke.Thickness = 1
+m_stroke.Parent = main
+
+toggle.MouseButton1Click:Connect(function()
+    main.Visible = not main.Visible
+    t_stroke.Color = main.Visible and Color3.fromRGB(50, 110, 255) or Color3.fromRGB(30, 45, 80)
+end)
+
+local top = Instance.new("Frame")
+top.Size = UDim2.new(1, 0, 0, 50)
+top.BackgroundTransparency = 1
+top.Parent = main
+
+local logo_lbl = Instance.new("TextLabel")
+logo_lbl.Size = UDim2.new(0, 150, 0, 30)
+logo_lbl.Position = UDim2.new(0, 15, 0.5, -15)
+logo_lbl.BackgroundColor3 = Color3.fromRGB(12, 18, 36)
+logo_lbl.Text = "★ ZKONTOP HUB X ★"
+logo_lbl.Font = Enum.Font.GothamBold
+logo_lbl.TextSize = 12
+logo_lbl.TextColor3 = Color3.fromRGB(60, 140, 255)
+logo_lbl.Parent = top
+
+local uic_logo = Instance.new("UICorner")
+uic_logo.CornerRadius = UDim.new(0, 4)
+uic_logo.Parent = logo_lbl
+
+local l_stroke = Instance.new("UIStroke")
+l_stroke.Color = Color3.fromRGB(30, 60, 150)
+l_stroke.Thickness = 1
+l_stroke.Parent = logo_lbl
+
+task.spawn(function()
+    while sgui and sgui.Parent do
+        ts:Create(l_stroke, TweenInfo.new(0.6), {Color = Color3.fromRGB(80, 170, 255)}):Play()
+        task.wait(0.6)
+        ts:Create(l_stroke, TweenInfo.new(0.6), {Color = Color3.fromRGB(30, 60, 150)}):Play()
+        task.wait(1.5)
+    end
+end)
+
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(0, 250, 1, 0)
+subtitle.Position = UDim2.new(0, 180, 0, 0)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "EDITION ENTIÈREMENT CORRIGÉE (DRAWING API)"
+subtitle.Font = Enum.Font.GothamSemibold
+subtitle.TextSize = 10
+subtitle.TextColor3 = Color3.fromRGB(70, 85, 115)
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = top
+
+local sep = Instance.new("Frame")
+sep.Size = UDim2.new(1, 0, 0, 1)
+sep.Position = UDim2.new(0, 0, 0, 50)
+sep.BackgroundColor3 = Color3.fromRGB(20, 28, 48)
+sep.BorderSizePixel = 0
+sep.Parent = main
+
+local side = Instance.new("Frame")
+side.Position = UDim2.new(0, 0, 0, 51)
+side.Size = UDim2.new(0, 140, 1, -51)
+side.BackgroundColor3 = Color3.fromRGB(6, 7, 10)
+side.BorderSizePixel = 0
+side.Parent = main
+
+local s_layout = Instance.new("UIListLayout")
+s_layout.Padding = UDim.new(0, 4)
+s_layout.Parent = side
+
+local s_pad = Instance.new("UIPadding")
+s_pad.PaddingTop = UDim.new(0, 8)
+s_pad.PaddingLeft = UDim.new(0, 8)
+s_pad.PaddingRight = UDim.new(0, 8)
+s_pad.Parent = side
+
+local p_container = Instance.new("Frame")
+p_container.Position = UDim2.new(0, 155, 0, 60)
+p_container.Size = UDim2.new(1, -170, 1, -70)
+p_container.BackgroundTransparency = 1
+p_container.Parent = main
+
+local pages, buttons = {}, {}
+
+local function make_page(name)
+    local pf = Instance.new("ScrollingFrame")
+    pf.Size = UDim2.new(1, 0, 1, 0)
+    pf.BackgroundTransparency = 1
+    pf.ScrollBarThickness = 3
+    pf.ScrollBarImageColor3 = Color3.fromRGB(40, 90, 230)
+    pf.Visible = false
+    pf.CanvasSize = UDim2.new(0, 0, 0, 0)
+    pf.Parent = p_container
+
+    local p_lay = Instance.new("UIListLayout")
+    p_lay.Padding = UDim.new(0, 6)
+    p_lay.Parent = pf
+    
+    p_lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        pf.CanvasSize = UDim2.new(0, 0, 0, p_lay.AbsoluteContentSize.Y + 10)
+    end)
+
+    pages[name] = pf
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 30)
+    btn.BackgroundColor3 = Color3.fromRGB(12, 14, 20)
+    btn.Text = "  " .. name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 10
+    btn.TextColor3 = Color3.fromRGB(100, 115, 140)
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.BorderSizePixel = 0
+    btn.Parent = side
+    
+    local uic_btn = Instance.new("UICorner")
+    uic_btn.CornerRadius = UDim.new(0, 4)
+    uic_btn.Parent = btn
+    
+    buttons[name] = btn
+
+    btn.MouseButton1Click:Connect(function()
+        for n, f in pairs(pages) do
+            f.Visible = false
+            ts:Create(buttons[n], TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(12, 14, 20), TextColor3 = Color3.fromRGB(100, 115, 140)}):Play()
+        end
+        pf.Visible = true
+        ts:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(35, 80, 220), TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+    end)
+
+    return pf
+end
+
+local function ctx_toggle(parent, text, cb)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1, -4, 0, 36)
+    f.BackgroundColor3 = Color3.fromRGB(12, 15, 23)
+    f.Parent = parent
+    
+    local uic_f = Instance.new("UICorner")
+    uic_f.CornerRadius = UDim.new(0, 4)
+    uic_f.Parent = f
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -60, 1, 0)
+    lbl.Position = UDim2.new(0, 10, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.Font = Enum.Font.GothamSemibold
+    lbl.TextSize = 11
+    lbl.TextColor3 = Color3.fromRGB(190, 200, 220)
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = f
+
+    local sw = Instance.new("TextButton")
+    sw.Size = UDim2.new(0, 34, 0, 16)
+    sw.Position = UDim2.new(1, -44, 0.5, -8)
+    sw.BackgroundColor3 = Color3.fromRGB(25, 30, 45)
+    sw.Text = ""
+    sw.Parent = f
+    
+    local uic_sw = Instance.new("UICorner")
+    uic_sw.CornerRadius = UDim.new(1, 0)
+    uic_sw.Parent = sw
+
+    local ind = Instance.new("Frame")
+    ind.Size = UDim2.new(0, 12, 0, 12)
+    ind.Position = UDim2.new(0, 2, 0.5, -6)
+    ind.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ind.Parent = sw
+    
+    local uic_ind = Instance.new("UICorner")
+    uic_ind.CornerRadius = UDim.new(1, 0)
+    uic_ind.Parent = ind
+
+    local active = false
+    sw.MouseButton1Click:Connect(function()
+        active = not active
+        ts:Create(sw, TweenInfo.new(0.15), {BackgroundColor3 = active and Color3.fromRGB(40, 100, 240) or Color3.fromRGB(25, 30, 45)}):Play()
+        ts:Create(ind, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = active and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)}):Play()
+        pcall(cb, active)
+    end)
+end
+
+local function ctx_slider(parent, text, min, max, def, cb)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1, -4, 0, 44)
+    f.BackgroundColor3 = Color3.fromRGB(12, 15, 23)
+    f.Parent = parent
+    
+    local uic_f = Instance.new("UICorner")
+    uic_f.CornerRadius = UDim.new(0, 4)
+    uic_f.Parent = f
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -100, 0, 20)
+    lbl.Position = UDim2.new(0, 10, 0, 4)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.Font = Enum.Font.GothamSemibold
+    lbl.TextSize = 11
+    lbl.TextColor3 = Color3.fromRGB(190, 200, 220)
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = f
+
+    local v_lbl = Instance.new("TextLabel")
+    v_lbl.Size = UDim2.new(0, 60, 0, 20)
+    v_lbl.Position = UDim2.new(1, -70, 0, 4)
+    v_lbl.BackgroundTransparency = 1
+    v_lbl.Text = tostring(def)
+    v_lbl.Font = Enum.Font.GothamBold
+    v_lbl.TextSize = 11
+    v_lbl.TextColor3 = Color3.fromRGB(50, 120, 255)
+    v_lbl.TextXAlignment = Enum.TextXAlignment.Right
+    v_lbl.Parent = f
+
+    local track = Instance.new("TextButton")
+    track.Size = UDim2.new(1, -20, 0, 4)
+    track.Position = UDim2.new(0, 10, 1, -10)
+    track.BackgroundColor3 = Color3.fromRGB(25, 32, 50)
+    track.Text = ""
+    track.Parent = f
+    
+    local uic_tr = Instance.new("UICorner")
+    uic_tr.Parent = track
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(math.clamp((def - min) / (max - min), 0, 1), 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(40, 100, 240)
+    fill.Parent = track
+    
+    local uic_fi = Instance.new("UICorner")
+    uic_fi.Parent = fill
+
+    local sliding = false
+    local function update(input)
+        local x = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+        fill.Size = UDim2.new(x, 0, 1, 0)
+        local v = math.floor(min + (x * (max - min)))
+        v_lbl.Text = tostring(v)
+        pcall(cb, v)
+    end
+
+    track.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then sliding = true; update(i) end
+    end)
+    uis.InputChanged:Connect(function(i)
+        if sliding and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then update(i) end
+    end)
+    uis.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then sliding = false end
+    end)
+end
+
+local function ctx_button(parent, text, cb)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -4, 0, 34)
+    btn.BackgroundColor3 = Color3.fromRGB(16, 22, 38)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 11
+    btn.TextColor3 = Color3.fromRGB(220, 225, 235)
+    btn.BorderSizePixel = 0
+    btn.Parent = parent
+
+    local uic = Instance.new("UICorner")
+    uic.CornerRadius = UDim.new(0, 4)
+    uic.Parent = btn
+
+    btn.MouseEnter:Connect(function() ts:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(24, 34, 60)}):Play() end)
+    btn.MouseLeave:Connect(function() ts:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(16, 22, 38)}):Play() end)
+    btn.MouseButton1Click:Connect(function() pcall(cb) end)
+end
+
+-- // INITIALISATION DES PAGES // --
+local main_p   = make_page("UNIVERSAL")
+local plyr_p   = make_page("PLAYER")
+local combat_p = make_page("COMBAT")
+local vis_p    = make_page("VISUALS")
+local world_p  = make_page("WORLD")
+local fun_p    = make_page("FUN")
+local util_p   = make_page("UTILITIES")
+
+pages["UNIVERSAL"].Visible = true
+buttons["UNIVERSAL"].BackgroundColor3 = Color3.fromRGB(35, 80, 220)
+buttons["UNIVERSAL"].TextColor3 = Color3.fromRGB(255, 255, 255)
+
+
+-- ==================== [ UNIVERSAL ] ====================
+ctx_toggle(main_p, "Fullbright", function(v)
+    light.Brightness = v and 4 or 1
+    light.Ambient = v and Color3.new(1,1,1) or Color3.fromRGB(127,127,127)
+    light.OutdoorAmbient = v and Color3.new(1,1,1) or Color3.fromRGB(127,127,127)
+end)
+
+ctx_toggle(main_p, "FPS Boost v2", function(v)
+    settings().Rendering.QualityLevel = v and 1 or 10
+end)
+
+local infJmp
+ctx_toggle(main_p, "Infinite Jump", function(v)
+    if v then
+        infJmp = uis.InputBegan:Connect(function()
+            if uis:IsKeyDown(Enum.KeyCode.Space) then
+                pcall(function() plr.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end)
+            end
+        end)
+    else
+        if infJmp then infJmp:Disconnect(); infJmp = nil end
+    end
+end)
+
+local noclip
+ctx_toggle(main_p, "No Clip", function(v)
+    if v then
+        noclip = run.Stepped:Connect(function()
+            pcall(function()
+                if plr.Character then
+                    for _, part in pairs(plr.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then part.CanCollide = false end
+                    end
+                end
+            end)
+        end)
+    else
+        if noclip then noclip:Disconnect(); noclip = nil end
+    end
+end)
+
+local antiAfkConn
+ctx_toggle(main_p, "Anti-AFK Kick", function(v)
+    if v then
+        antiAfkConn = plr.Idled:Connect(function()
+            game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        end)
+    else
+        if antiAfkConn then antiAfkConn:Disconnect(); antiAfkConn = nil end
+    end
+end)
+
+ctx_toggle(main_p, "Désactiver les Ombres", function(v) light.GlobalShadows = not v end)
+ctx_button(main_p, "Rejoindre le même serveur", function() teleport:Teleport(game.PlaceId, plr) end)
+ctx_button(main_p, "Changer de serveur (Server Hop)", function() 
+    local x = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+    for _, s in pairs(x.data) do
+        if s.playing < s.maxPlayers and s.id ~= game.JobId then teleport:TeleportToPlaceInstance(game.PlaceId, s.id, plr) break end
+    end
+end)
+
+
+-- ==================== [ PLAYER ] ====================
+local speedVal = 16
+local jumpVal = 50
+
+local function setupHumanoid(char)
+    local hum = char:WaitForChild("Humanoid", 5)
+    if hum then
+        hum.WalkSpeed = speedVal
+        if hum.UseJumpPower then hum.JumpPower = jumpVal else hum.JumpHeight = (jumpVal / 7) end
+        hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function() hum.WalkSpeed = speedVal end)
+        hum:GetPropertyChangedSignal("JumpPower"):Connect(function() hum.JumpPower = jumpVal end)
+    end
+end
+if plr.Character then task.spawn(setupHumanoid, plr.Character) end
+plr.CharacterAdded:Connect(setupHumanoid)
+
+ctx_slider(plyr_p, "Vitesse (WalkSpeed)", 16, 500, 16, function(v) speedVal = v; pcall(function() plr.Character.Humanoid.WalkSpeed = v end) end)
+ctx_slider(plyr_p, "Puissance Saut (JumpPower)", 50, 500, 50, function(v) jumpVal = v; pcall(function() plr.Character.Humanoid.JumpPower = v end) end)
+ctx_slider(plyr_p, "Hauteur d'assise (HipHeight)", 0, 50, 0, function(v) pcall(function() plr.Character.Humanoid.HipHeight = v end) end)
+ctx_slider(plyr_p, "Gravité de la Carte", 0, 400, 196, function(v) workspace.Gravity = v end)
+
+local semiGod = false
+local godLoop
+ctx_toggle(plyr_p, "Anti-Dégâts (Semi-God / Anti-Void)", function(v)
+    semiGod = v
+    if v then
+        godLoop = run.Heartbeat:Connect(function()
+            if semiGod and plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+                if hum.Health > 0 and hum.Health < hum.MaxHealth then hum.Health = hum.MaxHealth end
+            end
+        end)
+    else
+        if godLoop then godLoop:Disconnect(); godLoop = nil end
+    end
+end)
+
+
+-- ==================== [ COMBAT ] ====================
+local lockConn = nil
+local hitpart = "Head"
+
+local function getClosest()
+    local target, near = nil, math.huge
+    local camPos = workspace.CurrentCamera.CFrame.Position
+    for _, p in pairs(players:GetPlayers()) do
+        if p ~= plr and p.Character and p.Character:FindFirstChild(hitpart) and p.Character:FindFirstChildOfClass("Humanoid") then
+            if p.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
+                local d = (p.Character[hitpart].Position - camPos).Magnitude
+                if d < near then near = d; target = p end
+            end
+        end
+    end
+    return target
+end
+
+ctx_toggle(combat_p, "Cam Lock (Aimbot)", function(v)
+    if v then
+        lockConn = run.RenderStepped:Connect(function()
+            local t = getClosest()
+            if t and t.Character and t.Character:FindFirstChild(hitpart) then
+                workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, t.Character[hitpart].Position)
+            end
+        end)
+    else
+        if lockConn then lockConn:Disconnect(); lockConn = nil end
+    end
+end)
+
+
+-- ==================== [ VISUALS - RECONSTRUCTION TOTALE (API DRAWING) ] ====================
+local function cleanESP(p)
+    if p.Character then
+        local hl = p.Character:FindFirstChild("ZK_Highlight")
+        if hl then hl:Destroy() end
+        local bb = p.Character:FindFirstChild("ZK_NameTag")
+        if bb then bb:Destroy() end
+    end
+    if activeTracers[p] then
+        activeTracers[p].Visible = false
+        activeTracers[p]:Remove()
+        activeTracers[p] = nil
+    end
+end
+
+local function applyESP(p)
+    if p == plr then return end
+    cleanESP(p)
+
+    local function runESP()
+        local char = p.Character
+        if not char then return end
+        
+        local hrp = char:WaitForChild("HumanoidRootPart", 5)
+        local head = char:WaitForChild("Head", 5)
+        if not hrp or not head then return end
+
+        -- 1. CHAMS (Silhouette)
+        local hl = Instance.new("Highlight")
+        hl.Name = "ZK_Highlight"
+        hl.FillColor = Color3.fromRGB(50, 110, 255)
+        hl.FillTransparency = 0.4
+        hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+        hl.Enabled = espOn
+        hl.Parent = char
+
+        -- 2. TEXTE (Noms & Distance via Billboard natif Roblox)
+        local bb = Instance.new("BillboardGui")
+        bb.Name = "ZK_NameTag"
+        bb.Size = UDim2.new(0, 150, 0, 30)
+        bb.AlwaysOnTop = true
+        bb.Adornee = head
+        bb.ExtentsOffset = Vector3.new(0, 2.5, 0)
+        
+        local tl = Instance.new("TextLabel")
+        tl.Size = UDim2.new(1, 0, 1, 0)
+        tl.BackgroundTransparency = 1
+        tl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tl.TextStrokeTransparency = 0
+        tl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        tl.Font = Enum.Font.GothamBold
+        tl.TextSize = 13
+        tl.Visible = (espOn and espNames)
+        tl.Parent = bb
+        bb.Parent = char
+
+        -- 3. TRACERS (Lignes via Drawing API)
+        local line = Drawing.new("Line")
+        line.Color = Color3.fromRGB(50, 110, 255)
+        line.Thickness = 2
+        line.Transparency = 1
+        activeTracers[p] = line
+
+        local connection
+        connection = run.RenderStepped:Connect(function()
+            if not espOn or not p.Parent or not char.Parent or not hrp.Parent then
+                cleanESP(p)
+                if connection then connection:Disconnect() end
+                return
+            end
+
+            -- Actualisation dynamique des Noms & Distance
+            if espNames then
+                local dist = 0
+                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    dist = math.floor((hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude)
+                end
+                local dispName = (p.DisplayName and p.DisplayName ~= "") and p.DisplayName or p.Name
+                tl.Text = dispName .. " [" .. dist .. "m]"
+                tl.Visible = true
+            else
+                tl.Visible = false
+            end
+
+            -- Actualisation dynamique du Traceur (Drawing API direct)
+            if espTracers then
+                local cam = workspace.CurrentCamera
+                local screenPos, onScreen = cam:WorldToViewportPoint(hrp.Position)
+                if onScreen then
+                    line.From = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y)
+                    line.To = Vector2.new(screenPos.X, screenPos.Y)
+                    line.Visible = true
+                else
+                    line.Visible = false
+                end
+            else
+                line.Visible = false
+            end
+        end)
+    end
+
+    if p.Character then task.spawn(runESP) end
+    p.CharacterAdded:Connect(runESP)
+end
+
+ctx_toggle(vis_p, "ESP Chams Global", function(v)
+    espOn = v
+    for _, p in pairs(players:GetPlayers()) do
+        if v then applyESP(p) else cleanESP(p) end
+    end
+end)
+
+ctx_toggle(vis_p, "Tracers Lines", function(v) espTracers = v end)
+ctx_toggle(vis_p, "Noms & Distances", function(v) espNames = v end)
+
+players.PlayerAdded:Connect(function(p) if espOn then applyESP(p) end end)
+players.PlayerRemoving:Connect(cleanESP)
+
+ctx_slider(vis_p, "Changer FOV Caméra", 70, 140, 70, function(v) workspace.CurrentCamera.FieldOfView = v end)
+
+
+-- ==================== [ WORLD ] ====================
+local bClips = false
+run.Heartbeat:Connect(function()
+    if bClips and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+        local parts = workspace:GetPartsInPart(plr.Character.HumanoidRootPart)
+        for _, p in pairs(parts) do
+            if not p:IsDescendantOf(plr.Character) and p.CanCollide == true and p.Size.Magnitude < 50 then p:Destroy() end
+        end
+    end
+end)
+ctx_toggle(world_p, "Insta-Break Murs touchés", function(v) bClips = v end)
+ctx_button(world_p, "Map Transparente", function() for _, part in pairs(workspace:GetDescendants()) do if part:IsA("BasePart") and not part:IsDescendantOf(plr.Character) then part.Transparency = 0.5 end end end)
+
+
+-- ==================== [ FUN ] ====================
+local spinConn
+ctx_toggle(fun_p, "Spinbot", function(v)
+    if v then
+        spinConn = run.Heartbeat:Connect(function()
+            pcall(function() if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then plr.Character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(30), 0) end end)
+        end)
+    else
+        if spinConn then spinConn:Disconnect(); spinConn = nil end
+    end
+end)
+ctx_button(fun_p, "Tool Grabber", function() for _, obj in pairs(workspace:GetChildren()) do if obj:IsA("Tool") then obj.Parent = plr.Backpack end end end)
+
+
+-- ==================== [ UTILITIES ] ====================
+ctx_button(util_p, "Lancer Dark Dex", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/infyydude/DarkDex/main/DarkDex.lua"))() end)
+ctx_button(util_p, "Lancer Infinite Yield", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeY/infiniteyield/master/source"))() end)
+ctx_button(util_p, "Fermer complètement ZK", function() 
+    espOn = false
+    for _, p in pairs(players:GetPlayers()) do cleanESP(p) end
+    sgui:Destroy() 
+end)
+
+
+-- DRAG SYSTEM FENÊTRE PRINCIPALE
+local drag, dInput, dStart, sPos
+top.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        drag = true; dStart = i.Position; sPos = main.Position
+        i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then drag = false end end)
+    end
+end)
+top.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then dInput = i end end)
+uis.InputChanged:Connect(function(i)
+    if i == dInput and drag then
+        local d = i.Position - dStart
+        main.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + d.X, sPos.Y.Scale, sPos.Y.Offset + d.Y)
+    end
+end)
